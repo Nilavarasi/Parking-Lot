@@ -10,7 +10,11 @@ from flask_limiter.util import get_remote_address
 
 from auth import login_required
 from error import is_valid_slot_num
+from error import is_slot_free
+from error import is_any_free_slot
+from error import is_vechicle_already_parked
 from utils import get_parking_vechicle
+from utils import park_vechicle
 
 
 app = Flask(__name__)
@@ -43,6 +47,8 @@ def logout():
 @app.route('/slots', methods=['GET'])
 def get_slot():
     slot = request.args.get('slot')
+    if is_slot_free(slot):
+        return 'No Vechicle Found in this slot', 404
     if is_valid_slot_num(slot):
         return get_parking_vechicle(slot)
     else:
@@ -56,6 +62,19 @@ def increase_slot():
     request_data = request.get_json()
     os.environ['SLOT_SIZE'] = str(request_data['size'])
     return 'success', 200
+
+
+@login_required
+@limiter.limit("10/minute")
+@app.route('/park', methods=['POST'])
+def park():
+    vechicle_number = str(request.get_json()['vechicle_number'])
+    if is_vechicle_already_parked(vechicle_number):
+        return 'Vechicle is already parked', 404
+    if is_any_free_slot():
+        return park_vechicle(vechicle_number)
+    else:
+        return 'No Free Slot', 404
 
 
 if __name__ == '__main__':
