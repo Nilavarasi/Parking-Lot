@@ -12,8 +12,9 @@ def read_parking_lots():
 
 def get_parking_vechicle(slot_num):
     parked_vechicle = read_parking_lots()
+    print(parked_vechicle)
     return {'slot': slot_num,
-            'vechicle_plate_num': parked_vechicle.get(slot_num)
+            'vechicle_plate_num': parked_vechicle.get(int(slot_num))
             or 'No Such Vechicle'}
 
 
