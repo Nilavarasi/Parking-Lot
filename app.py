@@ -15,6 +15,7 @@ from error import is_any_free_slot
 from error import is_vechicle_already_parked
 from utils import get_parking_vechicle
 from utils import park_vechicle
+from utils import unpark_vechicle
 
 
 app = Flask(__name__)
@@ -75,6 +76,17 @@ def park():
         return park_vechicle(vechicle_number)
     else:
         return 'No Free Slot', 404
+
+
+@login_required
+@limiter.limit("10/minute")
+@app.route('/unpark', methods=['POST'])
+def unpark():
+    vechicle_number = str(request.get_json()['vechicle_number'])
+    if not is_vechicle_already_parked(vechicle_number):
+        return 'Vechicle is not parked', 404
+    else:
+        return unpark_vechicle(vechicle_number), 200
 
 
 if __name__ == '__main__':
