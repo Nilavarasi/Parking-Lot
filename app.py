@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask import request
 from flask import session
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from auth import login_required
 from error import is_valid_slot_num
@@ -14,6 +16,7 @@ from utils import get_parking_vechicle
 app = Flask(__name__)
 
 load_dotenv()
+limiter = Limiter(app, key_func=get_remote_address)
 app.config['SECRET_KEY'] = secrets.token_hex(16)
 
 
@@ -36,6 +39,7 @@ def logout():
 
 
 @login_required
+@limiter.limit("10/minute")
 @app.route('/slots', methods=['GET'])
 def get_slot():
     slot = request.args.get('slot')
@@ -46,6 +50,7 @@ def get_slot():
 
 
 @login_required
+@limiter.limit("10/minute")
 @app.route('/increase_slot', methods=['POST'])
 def increase_slot():
     request_data = request.get_json()
